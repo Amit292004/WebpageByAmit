@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Download</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Question Paper Download</h1>
+    <p>This page tests the download functionality for question papers.</p>
+    
+    <div>
+        <label for="paperId">Paper ID:</label>
+        <input type="text" id="paperId" value="" placeholder="Enter paper ID">
+    </div>
+    
+    <button id="testDownload">Test Download</button>
+    
+    <div id="result">
+        <p>Results will appear here...</p>
+    </div>
+
+    <script>
+        document.getElementById('testDownload').addEventListener('click', async () => {
+            const paperId = document.getElementById('paperId').value;
+            const resultDiv = document.getElementById('result');
+            
+            if (!paperId) {
+                resultDiv.innerHTML = '<p style="color: red;">Please enter a paper ID</p>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<p>Testing download...</p>';
+            
+            try {
+                const response = await fetch(`/api/question-papers/download/${paperId}`);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || `Failed with status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <p style="color: green;">Download endpoint successful!</p>
+                    <p>File URL: ${data.fileUrl}</p>
+                    <p><a href="${data.fileUrl}" target="_blank">Open file</a></p>
+                    <button id="downloadFile">Download File</button>
+                `;
+                
+                document.getElementById('downloadFile').addEventListener('click', () => {
+                    const a = document.createElement('a');
+                    a.href = data.fileUrl;
+                    a.download = data.fileUrl.split('/').pop() || 'document.pdf';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                });
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>
